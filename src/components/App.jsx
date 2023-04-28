@@ -56,8 +56,6 @@ class App extends Component {
   };
 
   handleImageClick = image => {
-    // console.log(image);
-    // setSelectedImage(image);
     this.setState({ selectedImage: image });
   };
 
