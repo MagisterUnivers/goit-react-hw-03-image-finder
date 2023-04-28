@@ -1,125 +1,100 @@
-/**
- * Components
- */
-import { Modal } from './Modal/Modal';
-import { getPictures } from 'utils/pixabayAPI';
-import { Searchbar } from './Searchbar/Searchbar';
-import { ImageGallery } from './ImageGallery/ImageGallery';
-import { Button } from './Button/Button';
-import { StyledSection } from './App.styled';
-/**
- * Libraries
- */
 import { Component } from 'react';
-import { BallTriangle } from 'react-loader-spinner';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css';
-export class App extends Component {
+import { getPictures } from 'utils/pixabayAPI';
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+import Button from './Button/Button';
+import Spinner from './Loader';
+import Modal from './Modal/Modal';
+
+class App extends Component {
   state = {
-    modalShown: false,
+    query: '',
     images: [],
-    searchQuery: '',
-    totalImageCount: 0,
-    page: 1,
-    perPage: 12,
-    currentImage: {
-      largeImageUrl: '',
-      alt: '',
-    },
+    currentPage: 1,
     isLoading: false,
-    error: '',
+    isMount: false,
+    selectedImage: null,
+    error: null,
+    perPage: 12,
   };
-  componentDidUpdate(prevProps, prevState) {
+
+  componentDidUpdate(_, prevState) {
     if (
-      prevState.searchQuery !== this.state.searchQuery ||
-      prevState.page !== this.state.page
+      prevState.query !== this.state.query ||
+      prevState.currentPage !== this.state.currentPage
     ) {
-      this.getData();
-    }
-    if (
-      this.state.totalImageCount === this.state.images.length &&
-      this.state.totalImageCount !== 0 &&
-      prevState.images.length !== this.state.images.length
-    ) {
-      console.log(this.state.totalImageCount, this.state.images.length);
-      toast(`That's all images on this request 😥`);
+      this.setState({ isLoading: true });
+
+      getPictures(this.state.query, this.state.currentPage, this.state.perPage)
+        .then(response => {
+          this.setState(prevState => {
+            return {
+              images: [...prevState.images, ...response.data.hits],
+            };
+          });
+        })
+        .catch(error => this.setState({ error: error }))
+        .finally(() => this.setState({ isLoading: false }));
+      this.setState({ isMount: true });
     }
   }
-  /**
-   * Own functions
-   */
-  getData = () => {
-    const { page, perPage, searchQuery } = this.state;
-    this.setState({ isLoading: true });
-    getPictures(searchQuery, page, perPage)
-      .then(({ data }) => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...data.hits],
-        }));
-        this.setState({ totalImageCount: data.totalHits });
-        if (page === 1) {
-          toast(`Wow! We found ${data.totalHits} images for you 😍`);
-        }
-      })
-      .finally(() => this.setState({ isLoading: false }));
+
+  handleSearchSubmit = searchQuery => {
+    this.setState({ query: searchQuery });
+    this.setState({ images: [] });
+    this.setState({ currentPage: 1 });
+    this.setState({ error: null });
   };
-  onSearchSubmit = e => {
-    e.preventDefault();
-    const searchQuery = e.target.elements.searchInput.value;
-    this.setState({
-      searchQuery,
-      images: [],
-      page: 1,
+
+  handleLoadMore = () => {
+    this.setState({ isLoading: true });
+    this.setState(prevState => {
+      return {
+        currentPage: prevState.currentPage + 1,
+      };
     });
   };
-  onLoadMoreBtnClick = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+
+  handleImageClick = image => {
+    this.setState({ selectedImage: image });
   };
-  toggleModal = (largeImageUrl, alt) => {
-    this.setState(prevState => ({ modalShown: !prevState.modalShown }));
-    this.setState({ currentImage: { largeImageUrl, alt } });
+
+  handleModalClose = () => {
+    this.setState({ selectedImage: null });
   };
+
   render() {
+    const { images, error, isLoading, perPage, selectedImage } = this.state;
     return (
       <div>
-        <Searchbar formSubmitHandler={this.onSearchSubmit} />
+        <Searchbar onSubmit={this.handleSearchSubmit} />
 
-        {this.state.isLoading && (
-          <StyledSection $loader>
-            <BallTriangle
-              height={100}
-              width={100}
-              radius={5}
-              color="#3f51b5"
-              ariaLabel="ball-triangle-loading"
-              wrapperClass={{}}
-              wrapperStyle=""
-              visible={true}
-            />
-          </StyledSection>
-        )}
-        {this.state.images.length > 0 && (
-          <StyledSection>
-            <ImageGallery
-              data={this.state.images}
-              onItemClick={this.toggleModal}
-            />
-            {this.state.images.length !== this.state.totalImageCount && (
-              <Button clickHandler={this.onLoadMoreBtnClick} />
-            )}
-          </StyledSection>
-        )}
-        {this.state.modalShown && (
-          <Modal onClose={this.toggleModal}>
-            <img
-              src={this.state.currentImage.largeImageUrl}
-              alt={this.state.currentImage.alt}
-            />
-          </Modal>
-        )}
+        {error && <p>Oops, something went wrong: {error}</p>}
 
-        <ToastContainer />
+        <ImageGallery images={images} onImageClick={this.handleImageClick} />
+
+        {isLoading && <Spinner />}
+
+        {!isLoading &&
+          images.length >= perPage &&
+          images.length % perPage === 0 && (
+            <Button onClick={this.handleLoadMore} />
+          )}
+
+        {!isLoading &&
+          images.length >= perPage &&
+          images.length % perPage !== 0 && <p>Картинки закончились</p>}
+
+        {selectedImage && (
+          <Modal
+            onClose={this.handleModalClose}
+            src={selectedImage.largeImageURL}
+            alt={selectedImage.tags}
+          />
+        )}
       </div>
     );
   }
 }
+
+export default App;
