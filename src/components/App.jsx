@@ -62,9 +62,13 @@ function App() {
 
       {isLoading && <Spinner />}
 
-      {images.length >= perPage && !isLoading && (
-        <Button onClick={handleLoadMore} />
-      )}
+      {!isLoading &&
+        images.length >= perPage &&
+        images.length % perPage === 0 && <Button onClick={handleLoadMore} />}
+
+      {!isLoading &&
+        images.length >= perPage &&
+        images.length % perPage !== 0 && <p>Картинки закончились</p>}
 
       {selectedImage && (
         <Modal
