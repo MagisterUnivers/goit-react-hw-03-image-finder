@@ -3,12 +3,12 @@ import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 
 const ImageGallery = ({ images, onImageClick }) => (
   <ul className="gallery">
-    {images.map(({ id, webformatURL, tags }) => (
+    {images.map(({ id, webformatURL, tags, largeImageURL }) => (
       <ImageGalleryItem
         key={id}
         src={webformatURL}
         alt={tags}
-        onClick={() => onImageClick(id)}
+        onClick={() => onImageClick({ largeImageURL, tags })}
       />
     ))}
   </ul>
