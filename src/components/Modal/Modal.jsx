@@ -1,37 +1,40 @@
-import { Component } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { createPortal } from 'react-dom';
-import { StyledModal, StyledOverlay } from './Modal.styled';
-const modalRoot = document.querySelector('#modal-root');
+import styles from './Modal.module.css';
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.onEscapeClick);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.onEscapeClick);
-  }
+const Modal = ({ src, alt, onClose }) => {
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
-  onEscapeClick = ev => {
-    if (ev.code === 'Escape' || ev.target === ev.currentTarget) {
-      this.props.onClose();
+  const handleBackdropClick = e => {
+    if (e.currentTarget === e.target) {
+      onClose();
     }
   };
 
-  render() {
-    return createPortal(
-      <StyledOverlay onClick={this.onEscapeClick} id="backdrop">
-        <StyledModal>{this.props.children}</StyledModal>
-      </StyledOverlay>,
-      modalRoot
-    );
-  }
-}
+  return (
+    <div className={styles.overlay} onClick={handleBackdropClick}>
+      <div className={styles.modal}>
+        {console.log('src:', src, 'alt:', alt)}
+        {src && alt && <img className={styles.modalImg} src={src} alt={alt} />}
+      </div>
+    </div>
+  );
+};
 
 Modal.propTypes = {
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.element),
-    PropTypes.element,
-  ]),
-  onClose: PropTypes.func,
+  src: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
+
+export default Modal;

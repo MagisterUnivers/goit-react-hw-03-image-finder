@@ -1,25 +1,17 @@
-import PropTypes from 'prop-types';
-import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
-import { StyledImageGallery } from './ImageGallery.styled';
-export const ImageGallery = ({ data, onItemClick }) => {
-  return (
-    <StyledImageGallery>
-      {data.map(element => {
-        return (
-          <ImageGalleryItem
-            key={element.id}
-            imageUrl={element.webformatURL}
-            largeImageUrl={element.largeImageURL}
-            altText={element.tags}
-            clickHandler={onItemClick}
-          />
-        );
-      })}
-    </StyledImageGallery>
-  );
-};
+import React from 'react';
+import ImageGalleryItem from '../ImageGalleryItem/ImageGalleryItem';
 
-ImageGallery.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.shape()),
-  onItemClick: PropTypes.func.isRequired,
-};
+const ImageGallery = ({ images, onImageClick }) => (
+  <ul className="gallery">
+    {images.map(({ id, webformatURL, tags }) => (
+      <ImageGalleryItem
+        key={id}
+        src={webformatURL}
+        alt={tags}
+        onClick={() => onImageClick(id)}
+      />
+    ))}
+  </ul>
+);
+
+export default ImageGallery;
