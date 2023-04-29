@@ -18,6 +18,9 @@ class App extends Component {
     perPage: 12,
   };
 
+  // componentDidMount() {
+  //   this.setState({ isLoading: true });
+  // }
   componentDidUpdate(_, prevState) {
     if (
       prevState.query !== this.state.query ||
@@ -40,14 +43,20 @@ class App extends Component {
   }
 
   handleSearchSubmit = searchQuery => {
-    this.setState({ query: searchQuery });
-    this.setState({ images: [] });
-    this.setState({ currentPage: 1 });
-    this.setState({ error: null });
+    // this.setState({ query: searchQuery });
+    // this.setState({ images: [] });
+    // this.setState({ currentPage: 1 });
+    // this.setState({ error: null });
+    this.setState({
+      query: searchQuery,
+      images: [],
+      currentPage: 1,
+      error: null,
+    });
   };
 
   handleLoadMore = () => {
-    this.setState({ isLoading: true });
+    // this.setState({ isLoading: true });
     this.setState(prevState => {
       return {
         currentPage: prevState.currentPage + 1,
@@ -86,11 +95,12 @@ class App extends Component {
           images.length % perPage !== 0 && <p>Картинки закончились</p>}
 
         {selectedImage && (
-          <Modal
-            onClose={this.handleModalClose}
-            src={selectedImage.largeImageURL}
-            alt={selectedImage.tags}
-          />
+          <Modal onClose={this.handleModalClose}>
+            <img src={selectedImage.largeImageURL} alt={selectedImage.tags} />
+          </Modal>
+
+          // src={selectedImage.largeImageURL}
+          // alt={selectedImage.tags}
         )}
       </div>
     );
